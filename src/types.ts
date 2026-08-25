@@ -1,6 +1,6 @@
-import type { Question } from './bank/types'
+import type { BankContainer, Question } from './bank/types'
 
-export type { Question } from './bank/types'
+export type { BankContainer, BankOrderMode, Question } from './bank/types'
 
 export type Rating = 'unknown' | 'fuzzy' | 'mastered'
 
@@ -43,4 +43,5 @@ export type PersistedState = {
   dailyNewLimit: number
   selectedChapterIds: number[]
   customQuestions: Question[]
+  banks: BankContainer[]
 }

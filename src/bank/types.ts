@@ -28,3 +28,15 @@ export type CustomQuestionInput = {
   reference: string
   keypointsText?: string
 }
+
+export type BankOrderMode = 'sequential' | 'shuffle'
+
+export type BankContainer = {
+  id: string
+  name: string
+  sourceName: string
+  builtin: boolean
+  enabled: boolean
+  orderMode: BankOrderMode
+  questions: Question[]
+}

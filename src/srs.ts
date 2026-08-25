@@ -58,23 +58,42 @@ export function applyRating(
   }
 }
 
-export function buildQueue(input: BuildQueueInput): string[] {
+export function remainingNewCount(
+  dailyNewLimit: number,
+  newIntroducedOn: Record<string, string>,
+  today: string,
+): number {
+  const introducedToday = Object.values(newIntroducedOn).filter((date) => date === today).length
+  return Math.max(0, dailyNewLimit - introducedToday)
+}
+
+export function collectDueAndUnseen(
+  questions: Array<{ id: string }>,
+  progress: Record<string, CardState>,
+  today: string,
+): { due: string[]; unseen: string[] } {
   const due: string[] = []
   const unseen: string[] = []
-  for (const q of input.questions) {
-    const state = input.progress[q.id]
+  for (const q of questions) {
+    const state = progress[q.id]
     if (!state) {
       unseen.push(q.id)
       continue
     }
-    if (state.dueDate <= input.today) {
+    if (state.dueDate <= today) {
       due.push(q.id)
     }
   }
-  const introducedToday = Object.values(input.newIntroducedOn).filter(
-    (date) => date === input.today,
-  ).length
-  const remainingNew = Math.max(0, input.dailyNewLimit - introducedToday)
+  return { due, unseen }
+}
+
+export function buildQueue(input: BuildQueueInput): string[] {
+  const { due, unseen } = collectDueAndUnseen(input.questions, input.progress, input.today)
+  const remainingNew = remainingNewCount(
+    input.dailyNewLimit,
+    input.newIntroducedOn,
+    input.today,
+  )
   return [...due, ...unseen.slice(0, remainingNew)]
 }
 

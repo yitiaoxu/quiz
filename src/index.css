@@ -408,6 +408,58 @@ pre {
   font-size: 0.95rem;
 }
 
+.bank-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 20px;
+  display: grid;
+  gap: 12px;
+}
+
+.bank-card {
+  border: 1px solid var(--line);
+  background: #fafbfc;
+  padding: 16px;
+  border-radius: var(--radius);
+}
+
+.bank-head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: baseline;
+}
+
+.bank-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  align-items: center;
+  margin-top: 12px;
+}
+
+.bank-mode {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin: 0;
+  padding: 4px 10px;
+}
+
+.bank-mode legend {
+  padding: 0 4px;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.bank-questions {
+  margin: 12px 0 0;
+  padding-left: 20px;
+  color: var(--muted);
+}
+
 .analysis {
   margin-top: 16px;
   padding: 16px;

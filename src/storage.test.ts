@@ -15,4 +15,22 @@ describe('normalizePersisted', () => {
       customQuestions: [],
     })
   })
+
+  it('migrates leftover custom questions into a named imported bank', () => {
+    const custom = {
+      id: 'custom-2-1',
+      chapter: '面试补充',
+      chapterId: 2,
+      number: 1,
+      title: 'CDC',
+      reference: '握手',
+      keypoints: [],
+      incomplete: false,
+      hasFigure: false,
+    }
+    const next = normalizePersisted({ customQuestions: [custom] })
+    expect(next.customQuestions).toEqual([])
+    expect(next.banks.some((bank) => bank.id === 'imported-legacy')).toBe(true)
+    expect(next.banks.find((bank) => bank.id === 'imported-legacy')?.questions).toEqual([custom])
+  })
 })

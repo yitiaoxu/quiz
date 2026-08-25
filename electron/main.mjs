@@ -47,6 +47,7 @@ const DEFAULT_PROGRESS = {
   dailyNewLimit: 10,
   selectedChapterIds: [],
   customQuestions: [],
+  banks: [],
 }
 
 function normalizeProgress(raw) {
@@ -59,6 +60,7 @@ function normalizeProgress(raw) {
     dailyNewLimit: Number.isFinite(daily) ? Math.max(0, daily) : 10,
     selectedChapterIds: Array.isArray(raw.selectedChapterIds) ? raw.selectedChapterIds : [],
     customQuestions: Array.isArray(raw.customQuestions) ? raw.customQuestions : [],
+    banks: Array.isArray(raw.banks) ? raw.banks : [],
   }
 }
 

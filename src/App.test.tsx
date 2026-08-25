@@ -190,7 +190,7 @@ describe('quiz app', () => {
     await waitFor(() => {
       expect(screen.getByRole('button', { name: '分析答题情况' })).toBeEnabled()
     })
-    await user.click(screen.getByRole('button', { name: '添加题目' }))
+    await user.click(screen.getByRole('button', { name: '题库' }))
     const file = new File(['跨时钟域要用握手'], 'notes.txt', { type: 'text/plain' })
     await user.upload(screen.getByLabelText('选择文档'), file)
     expect(await screen.findByText(/共生成\s*2\s*题/)).toBeInTheDocument()
@@ -204,6 +204,9 @@ describe('quiz app', () => {
 
     await user.click(screen.getByLabelText('选择 亚稳态防护'))
     await user.click(screen.getByRole('button', { name: '确认添加' }))
+    expect(screen.getByRole('heading', { name: '题库' })).toBeInTheDocument()
+    expect(screen.getByText('notes')).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: '返回' }))
     expect(screen.getByRole('heading', { name: 'FPGA 面试默写' })).toBeInTheDocument()
     expect(screen.getByText(/可学新题\s*3/)).toBeInTheDocument()
   })

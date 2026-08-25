@@ -1,3 +1,5 @@
+import { builtinSource } from './bank/builtin'
+import { builtinContainer, ensureBanks } from './bank/containers'
 import type { PersistedState } from './types'
 
 export function defaultPersisted(): PersistedState {
@@ -7,6 +9,7 @@ export function defaultPersisted(): PersistedState {
     dailyNewLimit: 10,
     selectedChapterIds: [],
     customQuestions: [],
+    banks: [builtinContainer(builtinSource)],
   }
 }
 
@@ -19,7 +22,8 @@ export function normalizePersisted(value: Partial<PersistedState> | null | undef
     newIntroducedOn: value.newIntroducedOn ?? fallback.newIntroducedOn,
     dailyNewLimit: Number.isFinite(daily) ? Math.max(0, daily) : fallback.dailyNewLimit,
     selectedChapterIds: value.selectedChapterIds ?? fallback.selectedChapterIds,
-    customQuestions: value.customQuestions ?? fallback.customQuestions,
+    customQuestions: [],
+    banks: ensureBanks(value.banks, value.customQuestions, builtinSource),
   }
 }
 
@@ -29,7 +33,7 @@ export type QuizStorage = {
 }
 
 export function memoryStorage(initial?: Partial<PersistedState>): QuizStorage {
-  let state: PersistedState = { ...defaultPersisted(), ...initial }
+  let state: PersistedState = normalizePersisted(initial)
   return {
     async load() {
       return structuredClone(state)
