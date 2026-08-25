@@ -154,6 +154,13 @@ export function App({ questions, storage, today: frozenToday }: AppProps) {
           }
           onDraft={(value) => setSession(setDraft(session, value))}
           onReveal={() => setSession(revealAnswer(session))}
+          onHome={() => {
+            const dirty = session.revealed || Boolean(session.draft.trim())
+            if (dirty && !window.confirm('本题还没保存评分，确定返回首页？')) return
+            setSession(null)
+            setCheckedPoints({})
+            setView('home')
+          }}
           onRate={(rating) => {
             const answeredId = session.currentId
             if (!answeredId) return
@@ -329,6 +336,7 @@ function QuizScreen({
   onDraft,
   onReveal,
   onRate,
+  onHome,
 }: {
   question: Question
   session: Session
@@ -338,9 +346,13 @@ function QuizScreen({
   onDraft: (value: string) => void
   onReveal: () => void
   onRate: (rating: Rating) => void
+  onHome: () => void
 }) {
   return (
     <>
+      <button type="button" className="ghost" onClick={onHome}>
+        返回首页
+      </button>
       <p className="eyebrow">
         {question.chapter} · {question.number} · 本轮剩余 {remaining}
       </p>

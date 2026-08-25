@@ -12,41 +12,85 @@ if ($za) {
   Write-Host "Using 7za: $($za.FullName)"
 }
 
-function Stop-ExesIn([string]$dir) {
-  if (-not (Test-Path -LiteralPath $dir)) {
-    return
-  }
-  Get-ChildItem -LiteralPath $dir -Filter "*.exe" -File -ErrorAction SilentlyContinue | ForEach-Object {
-    $full = $_.FullName
-    Get-CimInstance Win32_Process -ErrorAction SilentlyContinue |
-      Where-Object { $_.ExecutablePath -eq $full } |
-      ForEach-Object {
-        Write-Host "Stopping PID $($_.ProcessId)"
-        Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue
-      }
+$releaseDir = Join-Path $root "release"
+$stageDir = Join-Path $env:LOCALAPPDATA "fpga-quiz-build"
+
+function Stop-QuizApp {
+  Get-CimInstance Win32_Process -ErrorAction SilentlyContinue | ForEach-Object {
+    $name = [string]$_.Name
+    $path = [string]$_.ExecutablePath
+    if ($name -match '^(node|powershell|pwsh|cmd|conhost)\.exe$') {
+      return
+    }
+    $isApp = $false
+    if ($name -match '面试默写' -or $name -match 'fpga-quiz') {
+      $isApp = $true
+    }
+    if ($path) {
+      if ($path -match '面试默写' -or $path -match 'fpga-quiz') { $isApp = $true }
+      if ($path.StartsWith($releaseDir, [StringComparison]::OrdinalIgnoreCase)) { $isApp = $true }
+      if ($path -match '\\quiz\\release\\') { $isApp = $true }
+    }
+    if (-not $isApp) {
+      return
+    }
+    Write-Host "Stopping PID $($_.ProcessId) $name"
+    Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue
   }
 }
 
-$releaseDir = Join-Path $root "release"
-Stop-ExesIn $releaseDir
-Stop-ExesIn (Join-Path $releaseDir "win-unpacked")
+function Copy-ExeWithRetry([string]$source, [string]$destination) {
+  $destDir = Split-Path -Parent $destination
+  if (-not (Test-Path -LiteralPath $destDir)) {
+    New-Item -ItemType Directory -Force -Path $destDir | Out-Null
+  }
+  for ($i = 1; $i -le 8; $i++) {
+    try {
+      Copy-Item -LiteralPath $source -Destination $destination -Force
+      return
+    } catch {
+      Write-Host "Copy retry $i : $($_.Exception.Message)"
+      Stop-QuizApp
+      Start-Sleep -Seconds 2
+    }
+  }
+  throw "Could not copy exe into release (file still in use)"
+}
+
+Stop-QuizApp
 Start-Sleep -Seconds 1
 
-Write-Host "Packaging portable exe ..."
-cmd /c "npm run dist:win"
+Write-Host "Building web assets ..."
+cmd /c "npm run build"
 if ($LASTEXITCODE -ne 0) {
   Write-Host "Build failed with exit code $LASTEXITCODE"
   exit $LASTEXITCODE
 }
 
-$exe = Get-ChildItem -LiteralPath $releaseDir -Filter "*.exe" -File -ErrorAction SilentlyContinue |
+Write-Host "Packaging portable exe in $stageDir ..."
+$builder = Join-Path $root "node_modules\.bin\electron-builder.cmd"
+if (-not (Test-Path -LiteralPath $builder)) {
+  Write-Host "electron-builder not found. Run npm install first."
+  exit 1
+}
+& $builder --win portable "-c.directories.output=$stageDir"
+if ($LASTEXITCODE -ne 0) {
+  Write-Host "Packaging failed with exit code $LASTEXITCODE"
+  exit $LASTEXITCODE
+}
+
+$built = Get-ChildItem -LiteralPath $stageDir -Filter "*.exe" -File -ErrorAction SilentlyContinue |
+  Where-Object { $_.DirectoryName -eq $stageDir } |
   Select-Object -First 1
-if (-not $exe) {
-  Write-Host "No exe found in $releaseDir"
+if (-not $built) {
+  Write-Host "No portable exe found in $stageDir"
   exit 1
 }
 
-Write-Host "Done:" $exe.FullName
-Write-Host ("Size: {0:N0} bytes" -f $exe.Length)
+$dest = Join-Path $releaseDir $built.Name
+Copy-ExeWithRetry $built.FullName $dest
+
+Write-Host "Done:" $dest
+Write-Host ("Size: {0:N0} bytes" -f (Get-Item -LiteralPath $dest).Length)
 Write-Host "Reopen this exe to see the latest UI."
 exit 0

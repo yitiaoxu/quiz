@@ -85,6 +85,31 @@ describe('quiz app', () => {
     expect(screen.getByText('模糊 1')).toBeInTheDocument()
   })
 
+  it('returns home from an untouched quiz without asking', async () => {
+    const confirm = vi.spyOn(window, 'confirm')
+    const user = await renderApp()
+    await user.click(screen.getByRole('button', { name: '开始答题' }))
+    await user.click(screen.getByRole('button', { name: '返回首页' }))
+    expect(confirm).not.toHaveBeenCalled()
+    expect(screen.getByRole('heading', { name: 'FPGA 面试默写' })).toBeInTheDocument()
+    confirm.mockRestore()
+  })
+
+  it('asks before leaving a quiz with an unsaved answer', async () => {
+    const confirm = vi.spyOn(window, 'confirm').mockReturnValue(false)
+    const user = await renderApp()
+    await user.click(screen.getByRole('button', { name: '开始答题' }))
+    await user.type(screen.getByRole('textbox', { name: '我的答案' }), '草稿')
+    await user.click(screen.getByRole('button', { name: '返回首页' }))
+    expect(confirm).toHaveBeenCalledWith('本题还没保存评分，确定返回首页？')
+    expect(screen.getByRole('heading', { name: '什么叫 FPGA' })).toBeInTheDocument()
+
+    confirm.mockReturnValue(true)
+    await user.click(screen.getByRole('button', { name: '返回首页' }))
+    expect(screen.getByRole('heading', { name: 'FPGA 面试默写' })).toBeInTheDocument()
+    confirm.mockRestore()
+  })
+
   it('lets the learner reopen a weak card and reread both answers', async () => {
     const user = await renderApp()
     await user.click(screen.getByRole('button', { name: '开始答题' }))

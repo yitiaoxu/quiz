@@ -112,66 +112,27 @@ async function bumpWindowZoom(win, delta) {
   return applyWindowZoom(win, win.webContents.getZoomFactor() + delta)
 }
 
-function installApplicationMenu() {
-  Menu.setApplicationMenu(
-    Menu.buildFromTemplate([
-      {
-        label: '文件',
-        submenu: [{ role: 'quit', label: '退出' }],
-      },
-      {
-        label: '编辑',
-        submenu: [
-          { role: 'undo', label: '撤销' },
-          { role: 'redo', label: '重做' },
-          { type: 'separator' },
-          { role: 'cut', label: '剪切' },
-          { role: 'copy', label: '复制' },
-          { role: 'paste', label: '粘贴' },
-          { role: 'selectAll', label: '全选' },
-        ],
-      },
-      {
-        label: '查看',
-        submenu: [
-          {
-            label: '放大',
-            accelerator: 'CommandOrControl+=',
-            click: (_item, browserWindow) => {
-              const win = browserWindow ?? BrowserWindow.getFocusedWindow()
-              if (win) void bumpWindowZoom(win, ZOOM_STEP)
-            },
-          },
-          {
-            label: '放大',
-            accelerator: 'CommandOrControl+Plus',
-            visible: false,
-            acceleratorWorksWhenHidden: true,
-            click: (_item, browserWindow) => {
-              const win = browserWindow ?? BrowserWindow.getFocusedWindow()
-              if (win) void bumpWindowZoom(win, ZOOM_STEP)
-            },
-          },
-          {
-            label: '缩小',
-            accelerator: 'CommandOrControl+-',
-            click: (_item, browserWindow) => {
-              const win = browserWindow ?? BrowserWindow.getFocusedWindow()
-              if (win) void bumpWindowZoom(win, -ZOOM_STEP)
-            },
-          },
-          {
-            label: '实际大小',
-            accelerator: 'CommandOrControl+0',
-            click: (_item, browserWindow) => {
-              const win = browserWindow ?? BrowserWindow.getFocusedWindow()
-              if (win) void applyWindowZoom(win, 1)
-            },
-          },
-        ],
-      },
-    ]),
-  )
+function bindZoomKeys(win) {
+  win.webContents.on('before-input-event', (event, input) => {
+    if (input.type !== 'keyDown') return
+    const accel = process.platform === 'darwin' ? input.meta : input.control
+    if (!accel || input.alt) return
+    const key = input.key
+    if (key === '=' || key === '+' || key === 'Add') {
+      event.preventDefault()
+      void bumpWindowZoom(win, ZOOM_STEP)
+      return
+    }
+    if (key === '-' || key === '_' || key === 'Subtract') {
+      event.preventDefault()
+      void bumpWindowZoom(win, -ZOOM_STEP)
+      return
+    }
+    if (key === '0') {
+      event.preventDefault()
+      void applyWindowZoom(win, 1)
+    }
+  })
 }
 
 function settingsFile() {
@@ -281,6 +242,7 @@ function createWindow() {
   })
 
   void win.webContents.setVisualZoomLevelLimits(1, 1)
+  bindZoomKeys(win)
   win.webContents.on('did-finish-load', () => {
     void loadUiSettings().then((ui) => {
       win.webContents.setZoomFactor(ui.zoomFactor)
@@ -338,7 +300,7 @@ app.whenReady().then(() => {
     }
   })
 
-  installApplicationMenu()
+  Menu.setApplicationMenu(null)
   createWindow()
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow()

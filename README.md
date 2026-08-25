@@ -21,6 +21,6 @@
 - 运行已打包程序：打开 `release/` 里的 exe。
 - 开发：在本目录执行 `npm install`，再 `npm run desktop`。
 - 跑测试：`npm test`。
-- 更新 exe：先关掉默写窗口，再运行 `更新软件.bat`。若 `release` 里的文件正被占用，打包会失败。
+- 更新 exe：先关掉默写窗口，再运行 `更新软件.bat`（或 `npm run update`）。脚本会结束残留进程，在本机临时目录打包，再只把便携版 exe 拷回 `release/`，避免占用 `release/win-unpacked`。
 
 出题与答题分析需要在「API 设置」里选择厂商、该厂开放的模型版本，并填写密钥。
