@@ -1,0 +1,18 @@
+directories:
+  output: release
+  buildResources: build
+appId: local.fpga.quiz
+productName: FPGA面试默写
+files:
+  - filter:
+      - dist/**/*
+      - electron/**/*
+      - package.json
+win:
+  target:
+    - target: portable
+      arch:
+        - x64
+portable:
+  artifactName: FPGA面试默写.exe
+electronVersion: 37.10.3
