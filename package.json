@@ -1,0 +1,65 @@
+{
+  "name": "fpga-quiz",
+  "private": true,
+  "version": "0.1.0",
+  "description": "FPGA 面试默写本地练习",
+  "author": "local",
+  "type": "module",
+  "main": "electron/main.mjs",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "extract": "python bank/extract_handbook.py",
+    "desktop": "concurrently -k \"vite --port 5173 --strictPort\" \"wait-on http://127.0.0.1:5173 && cross-env VITE_DEV_SERVER_URL=http://127.0.0.1:5173 electron .\"",
+    "dist:win": "npm run build && cross-env ELECTRON_MIRROR=https://npmmirror.com/mirrors/electron/ ELECTRON_BUILDER_BINARIES_MIRROR=https://npmmirror.com/mirrors/electron-builder-binaries/ electron-builder --win portable",
+    "update": "npm run dist:win"
+  },
+  "dependencies": {
+    "pdf-parse": "^1.1.1",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8"
+  },
+  "devDependencies": {
+    "@testing-library/jest-dom": "^6.8.0",
+    "@testing-library/react": "^16.3.0",
+    "@testing-library/user-event": "^14.6.1",
+    "@types/react": "^19.2.17",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^6.0.4",
+    "concurrently": "^9.2.1",
+    "cross-env": "^10.1.0",
+    "electron": "^37.3.1",
+    "electron-builder": "^26.0.12",
+    "jsdom": "^26.1.0",
+    "typescript": "~5.9.2",
+    "vite": "^8.2.0",
+    "vitest": "^3.2.4",
+    "wait-on": "^8.0.5"
+  },
+  "build": {
+    "appId": "local.fpga.quiz",
+    "productName": "FPGA面试默写",
+    "files": [
+      "dist/**/*",
+      "electron/**/*",
+      "package.json"
+    ],
+    "directories": {
+      "output": "release"
+    },
+    "win": {
+      "target": [
+        {
+          "target": "portable",
+          "arch": ["x64"]
+        }
+      ]
+    },
+    "portable": {
+      "artifactName": "FPGA面试默写.exe"
+    }
+  }
+}

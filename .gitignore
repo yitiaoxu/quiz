@@ -1,0 +1,11 @@
+node_modules
+dist
+release/win-unpacked/
+release/win-unpacked.tmp/
+release-new/
+.pytest_cache
+scripts/__pycache__
+bank/__pycache__
+*.pyc
+.env
+.env.*
